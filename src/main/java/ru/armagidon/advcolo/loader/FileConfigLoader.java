@@ -63,7 +63,7 @@ public abstract class FileConfigLoader implements ConfigLoader {
     ProxyCallRouter<T> router =  proxyCallRouterFactory.create(current);
 
     reference.updates().subscribe(node -> {
-      T newValue = Unchecked.<Class<T>, T>function(node::get).apply(interfaceType);
+      T newValue = Unchecked.<Class<C>, T>function(node::get).apply(containerType);
       updateProxy(router, newValue);
     });
 
