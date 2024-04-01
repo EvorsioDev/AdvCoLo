@@ -61,11 +61,6 @@ dependencies {
 tasks {
     shadowJar {
         archiveClassifier = null
-
-        enableRelocation true
-        relocationPrefix "${project.group}.${project.name.toLowerCase()}.shaded"
-
-        exclude "*.properties"
     }
 
     build {
