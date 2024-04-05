@@ -18,7 +18,7 @@ public abstract class FileCachedLoadableStructure<T> implements CachedLoadableSt
     this.file = file;
   }
 
-  protected abstract <V extends Builder<V, L>, L extends AbstractConfigurationLoader<?>> AbstractConfigurationLoader.Builder<V, L> getLoader();
+  protected abstract AbstractConfigurationLoader.Builder<?, ?> getLoader();
 
   private AbstractConfigurationLoader<?> configureLoader() {
     return getLoader().file(file).headerMode(HeaderMode.PRESERVE).build();
