@@ -17,3 +17,7 @@ s
 Csrc/test/java/ru/armagidon/advcolo/loader/FileConfigLoaderTest.java,8/d/8d58fde1b561aea54d10f736f63e74e8b7c6b9b8
 o
 ?src/main/java/ru/armagidon/advcolo/loader/ReloadableGetter.java,7/2/72a4b8831b7b5a07880a9d43a3bcf768bc413a88
+w
+Gsrc/main/java/ru/armagidon/advcolo/storage/CachedLoadableStructure.java,7/e/7e5a918b50c1addfe3a4c3d249d15068819f931e
+{
+Ksrc/main/java/ru/armagidon/advcolo/storage/FileCachedLoadableStructure.java,0/d/0ddd652cd3f8f7f515d305084ca1d4c5e1a2bb76
