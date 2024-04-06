@@ -8,8 +8,7 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.reference.ConfigurationReference;
@@ -17,7 +16,7 @@ import org.spongepowered.configurate.reference.WatchServiceListener;
 
 public abstract class FileConfigLoader implements ConfigLoader {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(FileConfigLoader.class);
+  private static final Logger LOGGER = Logger.getGlobal();
   private final ClassToInstanceMap<Object> holders = MutableClassToInstanceMap.create();
   private final WatchServiceListener watchServiceListener;
   private final ProxyCallRouterFactory proxyCallRouterFactory;
@@ -86,10 +85,10 @@ public abstract class FileConfigLoader implements ConfigLoader {
   }
 
   protected void handleUpdateError(IOException e) {
-    LOGGER.error("Failed to reload configuration", e);
+    LOGGER.severe("Failed to reload configuration");
   }
 
   protected void handleCreateProxyError(IOException e) {
-    LOGGER.error("Failed to create proxy", e);
+    LOGGER.severe("Failed to create proxy");
   }
 }
