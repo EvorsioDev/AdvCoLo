@@ -8,14 +8,16 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.reference.ConfigurationReference;
 import org.spongepowered.configurate.reference.WatchServiceListener;
-import ru.armagidon.advcolo.util.Unchecked;
 
 public abstract class FileConfigLoader implements ConfigLoader {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileConfigLoader.class);
   private final ClassToInstanceMap<Object> holders = MutableClassToInstanceMap.create();
   private final WatchServiceListener watchServiceListener;
   private final ProxyCallRouterFactory proxyCallRouterFactory;
@@ -38,7 +40,11 @@ public abstract class FileConfigLoader implements ConfigLoader {
       throw new IllegalArgumentException("You must provide interface to use loader");
     T value = holders.getInstance(interfaceType);
     if (value == null) {
-      value = Unchecked.supplier(() -> createProxy(file, interfaceType, containerType)).get();
+      try {
+        value = createProxy(file, interfaceType, containerType);
+      } catch (IOException e) {
+        handleCreateProxyError(e);
+      }
     }
     return value;
   }
@@ -63,8 +69,12 @@ public abstract class FileConfigLoader implements ConfigLoader {
     ProxyCallRouter<T> router =  proxyCallRouterFactory.create(current);
 
     reference.updates().subscribe(node -> {
-      T newValue = Unchecked.<Class<C>, T>function(node::get).apply(containerType);
-      updateProxy(router, newValue);
+      try {
+        T newValue = node.get(containerType);
+        updateProxy(router, newValue);
+      } catch (IOException e) {
+        handleUpdateError(e);
+      }
     });
 
     T proxy = (T) Proxy.newProxyInstance(getClass().getClassLoader(),
@@ -73,5 +83,13 @@ public abstract class FileConfigLoader implements ConfigLoader {
     holders.putInstance(interfaceType, proxy);
 
     return proxy;
+  }
+
+  protected void handleUpdateError(IOException e) {
+    LOGGER.error("Failed to reload configuration", e);
+  }
+
+  protected void handleCreateProxyError(IOException e) {
+    LOGGER.error("Failed to create proxy", e);
   }
 }
