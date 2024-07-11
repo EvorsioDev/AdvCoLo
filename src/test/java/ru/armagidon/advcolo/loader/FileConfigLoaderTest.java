@@ -44,9 +44,8 @@ class FileConfigLoaderTest {
 
   private static final class TestFileLoader extends FileConfigLoader {
 
-    public TestFileLoader(
-        WatchServiceListener watchServiceListener) {
-      super(watchServiceListener);
+    public TestFileLoader(WatchServiceListener listener) {
+      super(listener);
     }
 
     @Override

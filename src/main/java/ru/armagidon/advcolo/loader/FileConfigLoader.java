@@ -1,14 +1,10 @@
 package ru.armagidon.advcolo.loader;
 
-import com.google.common.collect.ClassToInstanceMap;
-import com.google.common.collect.MutableClassToInstanceMap;
 import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.logging.Logger;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.reference.ConfigurationReference;
@@ -16,79 +12,54 @@ import org.spongepowered.configurate.reference.WatchServiceListener;
 
 public abstract class FileConfigLoader implements ConfigLoader {
 
-  private static final Logger LOGGER = Logger.getGlobal();
-  private final ClassToInstanceMap<Object> holders = MutableClassToInstanceMap.create();
-  private final WatchServiceListener watchServiceListener;
-  private final ProxyCallRouterFactory proxyCallRouterFactory;
+  private final WatchServiceListener listener;
+  private final ProxyCallRouterFactory routerFactory;
+  private final ProxyUpdaterFactory proxyUpdaterFactory;
 
   @Inject
-  protected FileConfigLoader(WatchServiceListener watchServiceListener,
-      ProxyCallRouterFactory proxyCallRouterFactory) {
+  protected FileConfigLoader(WatchServiceListener listener,
+      ProxyCallRouterFactory routerFactory, ProxyUpdaterFactory proxyUpdaterFactory) {
 
-    this.watchServiceListener = watchServiceListener;
-    this.proxyCallRouterFactory = proxyCallRouterFactory;
+    this.listener = listener;
+    this.routerFactory = routerFactory;
+    this.proxyUpdaterFactory = proxyUpdaterFactory;
   }
 
-  protected FileConfigLoader(WatchServiceListener watchServiceListener) {
-    this(watchServiceListener, new DefaultProxyCallRouterFactory());
+  @Inject
+  protected FileConfigLoader(WatchServiceListener listener) {
+    this(listener, new DefaultProxyCallRouterFactory(), new DefaultProxyUpdaterFactory());
   }
 
   @Override
-  public <T, C extends T> T load(File file, Class<T> interfaceType, Class<C> containerType) {
-    if (!interfaceType.isInterface())
+  public <T, C extends T> T load(File file, Class<T> interfaceType, Class<C> containerType)
+      throws IOException {
+    if (!interfaceType.isInterface()) {
       throw new IllegalArgumentException("You must provide interface to use loader");
-    T value = holders.getInstance(interfaceType);
-    if (value == null) {
-      try {
-        value = createProxy(file, interfaceType, containerType);
-      } catch (IOException e) {
-        handleCreateProxyError(e);
-      }
     }
-    return value;
+    return createProxy(file, interfaceType, containerType);
   }
 
   protected abstract ConfigurationLoader<CommentedConfigurationNode> getLoader(Path path);
 
-  protected <T> void updateProxy(ProxyCallRouter<T> router, T newValue) {
-    router.update(newValue);
-  }
-
-  @SuppressWarnings("unchecked")
   private <T, C extends T> T createProxy(File file, Class<T> interfaceType, Class<C> containerType)
       throws IOException {
-    Files.createDirectories(file.toPath().getParent());
+
     ConfigurationReference<CommentedConfigurationNode> reference = ConfigurationReference.watching(
-        this::getLoader, file.toPath(), watchServiceListener);
+        this::getLoader, file.toPath(), listener);
 
-    T current = reference.node().get(containerType);
+    ProxyCallRouter<T> router = routerFactory.create();
+    ProxyUpdater<T> proxyUpdater = proxyUpdaterFactory.createProxy(router, containerType);
+    reference.updates().subscribe(proxyUpdater);
 
-    reference.save();
+    if (!file.exists()) {
+      reference.save();
+    }
 
-    ProxyCallRouter<T> router =  proxyCallRouterFactory.create(current);
+    proxyUpdater.submit(reference.node());
 
-    reference.updates().subscribe(node -> {
-      try {
-        T newValue = node.get(containerType);
-        updateProxy(router, newValue);
-      } catch (IOException e) {
-        handleUpdateError(e);
-      }
-    });
+    //noinspection unchecked
+    return (T) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceType},
+        router);
 
-    T proxy = (T) Proxy.newProxyInstance(getClass().getClassLoader(),
-        new Class[]{ interfaceType }, router);
-
-    holders.putInstance(interfaceType, proxy);
-
-    return proxy;
-  }
-
-  protected void handleUpdateError(IOException e) {
-    LOGGER.severe("Failed to reload configuration");
-  }
-
-  protected void handleCreateProxyError(IOException e) {
-    LOGGER.severe("Failed to create proxy");
   }
 }

@@ -30,8 +30,15 @@ java {
     }
 }
 
-test {
+test{
     useJUnitPlatform()
+    testLogging({
+        showStandardStreams = true
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+        exceptionFormat = "FULL"
+    })
 }
 
 dependencies {

@@ -16,9 +16,13 @@ public class ProxyCallRouter<T> implements InvocationHandler {
   private final AtomicReference<T> reference;
 
   public ProxyCallRouter(T initial) {
-    reference = new AtomicReference<>(
-        Preconditions.checkNotNull(initial, "Initial container must be not null"));
+    reference = new AtomicReference<>(initial);
   }
+
+  public ProxyCallRouter() {
+    this(null);
+  }
+
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -28,13 +32,15 @@ public class ProxyCallRouter<T> implements InvocationHandler {
       return method.invoke(reference.get(), args);
     }
 
+    if (reference.get() == null)
+      throw new IllegalAccessException("Value is not loaded");
+
     Object initial = method.invoke(reference.get(), args);
     if (!valueProxies.containsKey(method)) {
       ProxyCallRouter<Object> router = new ProxyCallRouter<>(initial);
       routers.put(method, router);
-      Object valueProxy = Proxy.newProxyInstance(
-          getClass().getClassLoader(),
-          new Class[]{returnType}, router);
+      Object valueProxy = Proxy.newProxyInstance(getClass().getClassLoader(),
+          new Class[]{ returnType }, router);
       valueProxies.put(method, valueProxy);
       return valueProxy;
     } else {
