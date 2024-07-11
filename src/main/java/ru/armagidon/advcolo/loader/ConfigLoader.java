@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public interface ConfigLoader {
 
-  <T, C extends T> T load(File file, Class<T> interfaceType, Class<C> containerType)
+  <T extends ReloadableConfig, C extends T> T load(File file, Class<T> interfaceType, Class<C> containerType)
       throws IOException;
 
 }

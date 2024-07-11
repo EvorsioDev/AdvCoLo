@@ -32,7 +32,7 @@ public abstract class FileConfigLoader implements ConfigLoader {
   }
 
   @Override
-  public <T, C extends T> T load(File file, Class<T> interfaceType, Class<C> containerType)
+  public <T extends ReloadableConfig, C extends T> T load(File file, Class<T> interfaceType, Class<C> containerType)
       throws IOException {
     if (!interfaceType.isInterface()) {
       throw new IllegalArgumentException("You must provide interface to use loader");
@@ -42,7 +42,7 @@ public abstract class FileConfigLoader implements ConfigLoader {
 
   protected abstract ConfigurationLoader<CommentedConfigurationNode> getLoader(Path path);
 
-  private <T, C extends T> T createProxy(File file, Class<T> interfaceType, Class<C> containerType)
+  private <T extends ReloadableConfig, C extends T> T createProxy(File file, Class<T> interfaceType, Class<C> containerType)
       throws IOException {
 
     ConfigurationReference<CommentedConfigurationNode> reference = ConfigurationReference.watching(

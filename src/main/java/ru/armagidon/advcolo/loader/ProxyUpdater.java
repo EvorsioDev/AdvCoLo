@@ -3,7 +3,7 @@ package ru.armagidon.advcolo.loader;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.reactive.Subscriber;
 
-public class ProxyUpdater<T> implements Subscriber<CommentedConfigurationNode> {
+public class ProxyUpdater<T extends ReloadableConfig> implements Subscriber<CommentedConfigurationNode> {
 
   private final ProxyCallRouter<T> router;
   private final Class<? extends T> containerType;

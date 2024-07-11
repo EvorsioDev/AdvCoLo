@@ -4,7 +4,7 @@ public class DefaultProxyCallRouterFactory implements ProxyCallRouterFactory {
 
 
   @Override
-  public <T> ProxyCallRouter<T> create() {
+  public <T extends ReloadableConfig> ProxyCallRouter<T> create() {
     return new ProxyCallRouter<>();
   }
 }

@@ -58,7 +58,7 @@ class FileConfigLoaderTest {
     }
   }
 
-  private interface TestInterface {
+  private interface TestInterface extends ReloadableConfig {
 
     int getInt();
 
@@ -68,7 +68,7 @@ class FileConfigLoaderTest {
     TestNestedInterface getNested();
   }
 
-  private interface TestNestedInterface {
+  private interface TestNestedInterface extends ReloadableConfig {
 
     int getInt();
 
