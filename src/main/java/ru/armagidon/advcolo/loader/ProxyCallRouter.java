@@ -55,10 +55,10 @@ public class ProxyCallRouter<T extends ReloadableConfig> implements InvocationHa
       return;
     }
     reference.set(newValue);
+    newValue.onReload();
     routers.forEach(Unchecked.biConsumer((method, router) -> {
       ReloadableConfig reloadableConfig = (ReloadableConfig) method.invoke(newValue);
       router.update(reloadableConfig);
-      reloadableConfig.onReload();
     }));
   }
 }
