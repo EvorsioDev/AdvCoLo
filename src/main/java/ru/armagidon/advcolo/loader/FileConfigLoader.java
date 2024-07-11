@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.reference.ConfigurationReference;
 import org.spongepowered.configurate.reference.WatchServiceListener;
@@ -61,5 +62,12 @@ public abstract class FileConfigLoader implements ConfigLoader {
     return (T) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceType},
         router);
 
+  }
+
+  public <T> void save(Path path, Class<T> type, T instance) throws ConfigurateException {
+    ConfigurationLoader<CommentedConfigurationNode> loader = getLoader(path);
+    CommentedConfigurationNode node = loader.load();
+    node.set(type, instance);
+    loader.save(node);
   }
 }
